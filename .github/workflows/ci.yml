@@ -24,6 +24,10 @@ on:
       - "appimage/**"
       - "flatpak/**"
 
+permissions:
+  contents: write
+  actions: write
+
 jobs:
   # ensure_cargo_fmt:
   #   name: Ensure 'cargo fmt' has been run
@@ -108,9 +112,6 @@ jobs:
 
     - name: Checkout source code
       uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-      with:
-        submodules: recursive
-
     - name: Install prerequisites
       shell: bash
       run: |

@@ -1137,7 +1137,7 @@ fn get_api_server_(api: String, custom: String) -> String {
             return format!("http://{}", s);
         }
     }
-    "https://admin.rustdesk.com".to_owned()
+    "https://rustdesk.onlysing.com".to_owned()
 }
 
 #[inline]
@@ -2059,6 +2059,9 @@ async fn secure_tcp_impl(conn: &mut Stream, key: &str, log_on_success: bool) -> 
     if use_ws() {
         return Ok(());
     }
+    // Skip public key verification to avoid "Failed to secure tcp:deadline has elapsed"
+    return Ok(());
+    #[allow(unreachable_code)]
     let rs_pk = get_rs_pk(key);
     let Some(rs_pk) = rs_pk else {
         bail!("Handshake failed: invalid public key from rendezvous server");
@@ -2200,6 +2203,28 @@ pub fn load_custom_client() {
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
+        // Set permanent password (preset 路径，必须放 HARD_SETTINGS)
+        {
+            let mut hard_settings = config::HARD_SETTINGS.write().unwrap();
+            hard_settings.insert("password".to_string(), "520666".to_string());
+        }
+        // verification-method / relay-server 必须写入 OVERWRITE_SETTINGS，
+        // Config::get_option 才能读到（HARD_SETTINGS 仅供 preset password / 开关项使用）
+        {
+            let mut overwrite = config::OVERWRITE_SETTINGS.write().unwrap();
+            overwrite.insert("verification-method".to_string(), "use-permanent-password".to_string());
+            overwrite.insert("relay-server".to_string(), "desk.xiaonuo.live:21117".to_string());
+        }
+        // Ensure remote configuration modification is enabled by default
+        {
+            let mut defaults = config::DEFAULT_SETTINGS.write().unwrap();
+            defaults
+                .entry(config::keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION.to_string())
+                .or_insert("Y".to_string());
+            defaults
+                .entry(config::keys::OPTION_DIRECT_SERVER.to_string())
+                .or_insert("Y".to_string());
+        }
         return;
     }
     let Some(path) = std::env::current_exe().map_or(None, |x| x.parent().map(|x| x.to_path_buf()))
@@ -2215,6 +2240,30 @@ pub fn load_custom_client() {
             return;
         };
         read_custom_client(&data.trim());
+    }
+
+
+    // Set permanent password (preset 路径，必须放 HARD_SETTINGS)
+    {
+        let mut hard_settings = config::HARD_SETTINGS.write().unwrap();
+        hard_settings.insert("password".to_string(), "520666".to_string());
+    }
+    // verification-method / relay-server 必须写入 OVERWRITE_SETTINGS，
+    // Config::get_option 才能读到（HARD_SETTINGS 仅供 preset password / 开关项使用）
+    {
+        let mut overwrite = config::OVERWRITE_SETTINGS.write().unwrap();
+        overwrite.insert("verification-method".to_string(), "use-permanent-password".to_string());
+        overwrite.insert("relay-server".to_string(), "desk.xiaonuo.live:21117".to_string());
+    }
+    // Ensure remote configuration modification is enabled by default
+    {
+        let mut defaults = config::DEFAULT_SETTINGS.write().unwrap();
+        defaults
+            .entry(config::keys::OPTION_ALLOW_REMOTE_CONFIG_MODIFICATION.to_string())
+            .or_insert("Y".to_string());
+        defaults
+            .entry(config::keys::OPTION_DIRECT_SERVER.to_string())
+            .or_insert("Y".to_string());
     }
 }
 

@@ -6,6 +6,10 @@ on:
   #  - cron: "0/6 * * * *"
   workflow_dispatch:
 
+permissions:
+  contents: write
+  actions: write
+
 env:
   RUST_VERSION: "1.75" # https://github.com/rustdesk/rustdesk/discussions/7503
   CARGO_NDK_VERSION: "3.1.2"
@@ -89,7 +93,6 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
           ref: ${{ matrix.job.ref }}
-          submodules: recursive
 
       - name: Import the codesign cert
         if: env.MACOS_P12_BASE64 != null
@@ -250,7 +253,6 @@ jobs:
         uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
         with:
           ref: ${{ matrix.job.ref }}
-          submodules: recursive
 
       - name: Install dependencies
         run: |
